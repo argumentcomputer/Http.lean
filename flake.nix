@@ -45,6 +45,12 @@
           # Where the lean files are located
           src = ./src;
         };
+        Cli = leanPkgs.buildLeanPackage {
+          name = "Http.Cli";
+          deps = [ project ];
+          # Where the lean files are located
+          src = ./src;
+        };
         test = leanPkgs.buildLeanPackage {
           name = "Tests";
           deps = [ project ];
@@ -58,12 +64,13 @@
         inherit project;
         packages = project // {
           ${name} = project.executable;
+          inherit Cli;
           test = test.executable;
         };
 
         checks.test = test.executable;
 
-        defaultPackage = self.packages.${system}.${name};
+        defaultPackage = self.packages.${system}.Cli.executable;
         devShell = pkgs.mkShell {
           inputsFrom = [ project.executable ];
           buildInputs = with pkgs; [

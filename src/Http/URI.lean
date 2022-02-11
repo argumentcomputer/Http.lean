@@ -1,7 +1,8 @@
 import Std
 import Http.Parsec
-open Std
-open Parsec
+import Socket
+
+open Std Parsec Socket
 
 namespace Http
 namespace URI
@@ -144,4 +145,14 @@ def url : Parsec URI := do
 end Parser
 
 def parse (s : String) : Except String URI := Parser.url.parse s
+
+
+def mkSockAddr (url : URI) : IO SockAddr :=
+  SockAddr.mk {
+    host := url.host
+    port := url.port.getD 80 |> ToString.toString
+    family := inet
+    type := stream
+  }
+
 end URI
