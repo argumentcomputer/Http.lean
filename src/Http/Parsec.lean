@@ -207,8 +207,16 @@ def anyChar : Parsec Char := λ pos =>
     error pos unexpectedEndOfInput
 
 @[inline]
-def pchar (c : Char) : Parsec Char := attempt do
+def pchar (c : Char) : Parsec Char := do
   if (←anyChar) = c then pure c else fail s!"expected: '{c}'"
+
+@[inline]
+def oneOf (cs : List Char) : Parsec Char := do
+  let c ← anyChar
+  if cs.contains c then
+    pure c
+  else
+    fail s!"expected one of: {cs}"
 
 @[inline]
 def skipChar (c : Char) : Parsec Unit := pchar c *> pure ()
