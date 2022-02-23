@@ -1,53 +1,11 @@
 import Std
 import Http.Parsec
+import Http.Types
 import Socket
 
 open Std Parsec Socket
 
 namespace Http
-namespace URI
-
-def Hostname := String
-
-deriving instance ToString for Hostname
-
-def Scheme := String
-def Scheme.mk (s: String) := s
-
-deriving instance ToString for Scheme
-
-def Path := List String
-
-instance : ToString Path where
-  toString p := p.foldl (λ acc s => acc ++ s) "/"
-
-structure UserInfo where
-  username : String
-  password : Option String
-
-instance : ToString UserInfo where
-  toString ui := ""
-
-def Fragment := List (String × String)
-
-instance : ToString Fragment where
-  toString (q : Fragment) := "#" ++ ("&".intercalate <| q.map (λ (k, v) => s!"{k}={v}"))
-
-def Query := List (String × String)
-
-instance : ToString Query where
-  toString (q : Query) := "?" ++ ("&".intercalate <| q.map (λ (k, v) => s!"{k}={v}"))
-end URI
-
-open URI
-structure URI where
-  userInfo : Option UserInfo
-  host: Hostname
-  port: Option UInt16
-  scheme: Scheme
-  path: Path
-  query: Option Query
-  fragment: Option Fragment
 
 namespace URI
 
@@ -159,13 +117,5 @@ end Parser
 
 def parse (s : String) : Except String URI := Parser.url.parse s
 
-
-def mkSockAddr (url : URI) : IO SockAddr :=
-  SockAddr.mk {
-    host := url.host
-    port := url.port.getD 80 |> ToString.toString
-    family := inet
-    type := stream
-  }
-
 end URI
+end Http

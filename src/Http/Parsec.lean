@@ -137,6 +137,10 @@ def eof : Parsec Unit := fun pos =>
     success pos ()
 
 @[inline]
+def rest : Parsec String := fun pos =>
+  success pos pos.it.remainingToString
+
+@[inline]
 partial def manyCore (p : Parsec α) (acc : Array α) : Parsec $ Array α := do
   if let some res ← option p then
     manyCore p (acc.push $ res)
@@ -207,6 +211,11 @@ def anyChar : Parsec Char := λ pos =>
     error pos unexpectedEndOfInput
 
 @[inline]
+def satisfy (p : Char → Bool) (msg : String := "condition not satisfied") : Parsec Char := attempt do
+  let c ← anyChar
+  if p c then pure c else fail msg
+
+@[inline]
 def pchar (c : Char) : Parsec Char := do
   if (←anyChar) = c then pure c else fail s!"expected: '{c}'"
 
@@ -227,6 +236,11 @@ def digit : Parsec Char := attempt do
   if '0' ≤ c ∧ c ≤ '9' then pure c else fail s!"digit expected"
 
 @[inline]
+def digitNat : Parsec Nat := do
+  let c ← satisfy (fun c => '0' ≤ c ∧ c ≤ '9')
+  return c.val.toNat - '0'.val.toNat
+
+@[inline]
 def hexDigit : Parsec Char := attempt do
   let c ← anyChar
   if ('0' ≤ c ∧ c ≤ '9')
@@ -243,12 +257,6 @@ def symbol : Parsec String := attempt do
   let c ← asciiLetter
   let rest ← manyChars (asciiLetter <|> digit)
   return s!"{c}{rest}"
-
-
-@[inline]
-def satisfy (p : Char → Bool) (msg : String := "condition not satisfied") : Parsec Char := attempt do
-  let c ← anyChar
-  if p c then pure c else fail msg
 
 @[inline]
 def notFollowedBy (p : Parsec α) : Parsec Unit := λ pos =>
