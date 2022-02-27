@@ -1,2 +1,4 @@
 *.olean
 result*
+lean_packages
+build
