@@ -21,9 +21,13 @@
       # Compile dependencies with the same lean version
       inputs.lean.follows = "lean";
     };
+    lake = {
+      url = "github:yatima-inc/lake";
+      inputs.lean.follows = "lean";
+    };
   };
 
-  outputs = { self, lean, utils, nixpkgs, Socket-lean, OpenSSL-lean }:
+  outputs = { self, lean, utils, nixpkgs, Socket-lean, OpenSSL-lean, lake }:
     let
       supportedSystems = [
         "aarch64-linux"
@@ -37,6 +41,7 @@
     lib.eachSystem supportedSystems (system:
       let
         leanPkgs = lean.packages.${system};
+        lakePkgs = lake.packages.${system};
         pkgs = nixpkgs.legacyPackages.${system};
         name = "Http";  # must match the name of the top-level .lean file
         project = leanPkgs.buildLeanPackage {
@@ -58,7 +63,7 @@
           src = ./test;
         };
         joinDepsDerivations = getSubDrv:
-          pkgs.lib.concatStringsSep ":" (map (d: "${getSubDrv d}") (project.allExternalDeps));
+          pkgs.lib.concatStringsSep ":" (map (d: "${getSubDrv d}") ([ lakePkgs ] ++ project.allExternalDeps));
       in
       {
         inherit project;
@@ -74,7 +79,8 @@
         devShell = pkgs.mkShell {
           inputsFrom = [ project.executable ];
           buildInputs = with pkgs; [
-            leanPkgs.lean-dev
+            leanPkgs.lean-dev 
+            lakePkgs.cli
           ];
           LEAN_PATH = "./src:./test:" + joinDepsDerivations (d: d.modRoot);
           LEAN_SRC_PATH = "./src:./test:" + joinDepsDerivations (d: d.src);

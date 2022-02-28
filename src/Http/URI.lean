@@ -9,6 +9,24 @@ namespace Http
 
 namespace URI
 
+namespace Query
+
+def set (self : Query) (key value : String) : Query :=
+  self.insert key value
+  
+def empty : Query := HashMap.empty
+
+end Query
+
+namespace Fragment
+
+def set (self : Fragment) (key value : String) : Fragment :=
+  self.insert key value
+  
+def empty : Fragment := HashMap.empty
+
+end Fragment
+
 private def toString (uri : URI) : String :=
   s!"{uri.scheme}://"
   ++ if let some user := uri.userInfo then s!"{user}@"
@@ -17,12 +35,24 @@ private def toString (uri : URI) : String :=
   ++ if let some port := uri.port then s!":{port}"
   else ""
   ++ s!"{uri.path}"
-  ++ if let some query := uri.query then s!"?{query}"
+  ++ if !uri.query.isEmpty then s!"{uri.query}"
   else ""
-  ++ if let some fragment := uri.fragment then s!"#{fragment}"
+  ++ if uri.fragment.isEmpty then s!"{uri.fragment}"
   else ""
 
 instance : ToString URI := ⟨toString⟩
+
+instance : Inhabited URI where
+  default := {
+    host := "localhost",
+    scheme := "http",
+    path := []
+  : URI }
+
+def setPath (uri : URI) (p : Path) : URI := { uri with path := p }
+
+def setQueryArg (uri : URI) (key value : String) : URI :=
+  { uri with query := uri.query.set key value }
 
 namespace Parser
 
@@ -88,7 +118,7 @@ partial def queryParser : Parsec Query := do
       pure <| (k, v) :: (← entries)
     else
       pure [(k, v)]
-  entries
+  HashMap.ofList <$> entries
 
 partial def fragmentParser : Parsec Fragment := do
   skipChar '#'
@@ -100,17 +130,17 @@ partial def fragmentParser : Parsec Fragment := do
       pure <| (k, v) :: (← entries)
     else
       pure [(k, v)]
-  entries
+  HashMap.ofList <$> entries
 
-def url : Parsec URI := do  
+def url : Parsec URI := do
   let scheme ← schemeParser
   skipString "://"
   let userInfo ← option userInfoParser
   let host ← hostName
   let optPort ← maybePort
   let path ← pathParser
-  let query ← option queryParser
-  let fragment ← option fragmentParser
+  let query ← (Option.getD · Query.empty) <$> option queryParser
+  let fragment ← (Option.getD · Fragment.empty) <$> option fragmentParser
   return { scheme, host, port := optPort, path, query, fragment, userInfo : URI }
 
 end Parser

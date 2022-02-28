@@ -1,4 +1,7 @@
 import Std
+
+open Std
+
 namespace Http
 
 namespace URI
@@ -26,28 +29,28 @@ structure UserInfo where
 instance : ToString UserInfo where
   toString ui := ""
 
-def Fragment := List (String × String)
+def Fragment := HashMap String String
 
 instance : ToString Fragment where
-  toString (q : Fragment) := "#" ++ ("&".intercalate <| q.map (λ (k, v) => s!"{k}={v}"))
+  toString (q : Fragment) := "#" ++ ("&".intercalate <| q.fold (λ acc k v => acc ++ [ s!"{k}={v}" ]) [])
 
-def Query := List (String × String)
+def Query := HashMap String String
 
 instance : ToString Query where
-  toString (q : Query) := "?" ++ ("&".intercalate <| q.map (λ (k, v) => s!"{k}={v}"))
+  toString (q : Query) := "?" ++ ("&".intercalate <| q.fold (λ acc k v => acc ++ [ s!"{k}={v}" ]) [])
 
 end URI
 
 open URI
 
 structure URI where
-  userInfo : Option UserInfo
+  userInfo : Option UserInfo := none
   host: Hostname
-  port: Option UInt16
+  port: Option UInt16 := none
   scheme: Scheme
   path: Path
-  query: Option Query
-  fragment: Option Fragment
+  query: Query := HashMap.empty
+  fragment: Fragment := HashMap.empty
 
 def CRLF : String := "\r\n"
 
