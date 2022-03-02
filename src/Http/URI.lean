@@ -13,7 +13,13 @@ namespace Query
 
 def set (self : Query) (key value : String) : Query :=
   self.insert key value
-  
+
+/--
+Shorthand to extract value
+-/
+def get? (self : Query) (key : String) : Option String :=
+  self.find? key
+
 def empty : Query := HashMap.empty
 
 end Query
@@ -22,10 +28,25 @@ namespace Fragment
 
 def set (self : Fragment) (key value : String) : Fragment :=
   self.insert key value
-  
+
+/--
+Shorthand to extract value
+-/
+def get? (self : Fragment) (key : String) : Option String :=
+  self.find? key
+
 def empty : Fragment := HashMap.empty
 
 end Fragment
+
+instance : ToString Path where
+  toString p := "/" ++ "/".intercalate p
+
+instance : ToString Fragment where
+  toString (q : Fragment) := "#" ++ ("&".intercalate <| q.fold (λ acc k v => acc ++ [ s!"{k}={v}" ]) [])
+
+instance : ToString Query where
+  toString (q : Query) := "?" ++ ("&".intercalate <| q.fold (λ acc k v => acc ++ [ s!"{k}={v}" ]) [])
 
 private def toString (uri : URI) : String :=
   s!"{uri.scheme}://"
@@ -51,8 +72,17 @@ instance : Inhabited URI where
 
 def setPath (uri : URI) (p : Path) : URI := { uri with path := p }
 
+/--
+Shorthand to set a query argument
+-/
 def setQueryArg (uri : URI) (key value : String) : URI :=
   { uri with query := uri.query.set key value }
+
+/--
+Shorthand to set fragment argument
+-/
+def setFragmentArg (uri : URI) (key value : String) : URI :=
+  { uri with query := uri.fragment.set key value }
 
 namespace Parser
 
@@ -86,8 +116,9 @@ def parseUInt16 : Parsec UInt16 := do
     n := n + d * 10 ^ i
   return n.toUInt16
 
-def maybePort : Parsec (Option UInt16) := do
-  option $ parseUInt16
+def maybePort : Parsec (Option UInt16) := option <| do
+  skipChar ':'
+  parseUInt16
 
 def psegment : Parsec String :=
   many1Chars <| oneOf ['-', '%', '_', '+', '$', '.', ':', '*', '@' ] <|> asciiLetter <|> digit
@@ -95,16 +126,19 @@ def psegment : Parsec String :=
 partial def pathParser : Parsec Path := do
   let rec comp : Parsec Path := do
     if ← test <| pstring "/" then
-      let part ← psegment
+      let part ← (·.getD "") <$> option psegment
       let rest ← comp
       pure <| part :: rest
     else
       pure []
   comp
 
+def usernameParser := many1Chars <| asciiLetter <|> digit
+def passwordParser := many1Chars <| asciiLetter <|> digit
+
 def userInfoParser : Parsec UserInfo := do
-  let username ← many1Chars <| asciiLetter <|> digit
-  let password ← option do skipChar ':'; many1Chars <| asciiLetter <|> digit
+  let username ← usernameParser
+  let password ← option do skipChar ':'; passwordParser
   skipChar '@'
   return { username, password : UserInfo }
 
@@ -124,8 +158,11 @@ partial def fragmentParser : Parsec Fragment := do
   skipChar '#'
   let rec entries := do
     let k ← psegment
-    skipChar '='
-    let v ← psegment
+    let v ← (if ← test <| skipChar '=' then
+      psegment
+    else
+      pure ""
+    )
     if ← test $ skipChar '&' then
       pure <| (k, v) :: (← entries)
     else

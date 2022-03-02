@@ -4,6 +4,13 @@ import Http.Parsec
 
 namespace Http.Response
 
+def toString (self : Response) : String :=
+  s!"Response: protocol={self.protocol}, message={self.message}, statusCode={self.statusCode} \n"
+  ++ s!"headers: {self.headers.toString}\n"
+  ++ s!"body: {self.body}"
+
+instance : ToString Response := ⟨toString⟩
+
 namespace Parser
 open Http.Headers Parsec
 

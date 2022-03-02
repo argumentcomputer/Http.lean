@@ -19,25 +19,17 @@ deriving instance ToString for Scheme
 
 def Path := List String
 
-instance : ToString Path where
-  toString p := p.foldl (λ acc s => acc ++ s) "/"
-
 structure UserInfo where
   username : String
   password : Option String
+  deriving BEq
 
 instance : ToString UserInfo where
-  toString ui := ""
+  toString ui := s!"{ui.username}" ++ if let some pass := ui.password then s!":{pass}" else ""
 
 def Fragment := HashMap String String
 
-instance : ToString Fragment where
-  toString (q : Fragment) := "#" ++ ("&".intercalate <| q.fold (λ acc k v => acc ++ [ s!"{k}={v}" ]) [])
-
 def Query := HashMap String String
-
-instance : ToString Query where
-  toString (q : Query) := "?" ++ ("&".intercalate <| q.fold (λ acc k v => acc ++ [ s!"{k}={v}" ]) [])
 
 end URI
 
@@ -48,7 +40,7 @@ structure URI where
   host: Hostname
   port: Option UInt16 := none
   scheme: Scheme
-  path: Path
+  path: Path := []
   query: Query := HashMap.empty
   fragment: Fragment := HashMap.empty
 

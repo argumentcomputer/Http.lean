@@ -10,6 +10,9 @@ def localNode : URI :=
   | Except.ok url => url
   | Except.error err => panic! err
 
+#eval URI.parse "http://localhost:5001/"
+#eval localNode
+
 def CID := String
   deriving ToString
 
@@ -23,9 +26,14 @@ def put (data : String) : IO CID := do
 
 def get (cid : CID) : IO Json := do
   let url := localNode.setPath ["api", "v0", "dag", "get"] |> (·.setQueryArg "arg" <| toString cid)
+  println! url
   let res ← Client.get url
-  let json ← IO.ofExcept <| Json.parse <| res.body.getD ""
-  return json
+  println! res
+  if res.statusCode = 200 then
+    let json ← IO.ofExcept <| Json.parse <| res.body.getD ""
+    return json
+  else
+    throw <| IO.Error.userError <| toString res
 
 end DAG
 

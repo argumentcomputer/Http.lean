@@ -1,11 +1,5 @@
-import Http
 import Tests.IPFS
-
-open Http Http.URI
-
-#eval Parser.hostName.parse "yatima.io"
-#eval Parser.pathParser.parse "/yatima.io/index.html"
-#eval URI.parse "http://yatima.io/"
+import Tests.URI
 
 def main (args : List String) : IO UInt32 := do
   try
