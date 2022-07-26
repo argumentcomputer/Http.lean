@@ -33,7 +33,11 @@ def main : IO Unit :=
 
 # Features TODO
 
-[] Parsing and sanitizing special characters in URIs
-[] Https and OpenSSL.lean integration
-[] Simple server functionality
-[] Add doc-gen4
+- [ ] Parsing and sanitizing special characters in URIs
+- [ ] Https and OpenSSL.lean integration
+- [ ] Simple server functionality
+- [ ] Add doc-gen4
+
+# Contributions
+
+Contributions are welcome but make an issue first. Also they need to be inside the intended scope of the project and 

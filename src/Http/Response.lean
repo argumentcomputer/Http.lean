@@ -1,6 +1,6 @@
 import Http.Types
 import Http.Headers
-import Http.Parsec
+import Parsec
 
 namespace Http.Response
 
