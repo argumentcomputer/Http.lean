@@ -1,6 +1,6 @@
 import Http.Types
 import Http.Parsec
-import Std
+import Lean
 
 namespace Http.Headers
 open Std

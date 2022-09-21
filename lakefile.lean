@@ -1,13 +1,13 @@
 import Lake
 open Lake DSL
 
-package Http {
-  srcDir := "src"
-  defaultFacet := PackageFacet.staticLib
-  dependencies := #[
-    {
-      name := `socket
-      src := Source.git "https://github.com/xubaiw/Socket.lean" "e2b40341017eacd03d006630e6f863ab7c1ede9f"
-    }
-  ]
-}
+package Http
+
+@[defaultTarget]
+lean_lib Http
+
+require Socket from git
+  "https://github.com/yatima-inc/Socket.lean" @ "c47fe71cde6b79a40903563cc56c0889bd5ca220"
+
+require OpenSSL from git
+  "https://github.com/yatima-inc/OpenSSL.lean" @ "7187dab2f60097194167dbfa5afd862c276f4cd7"
