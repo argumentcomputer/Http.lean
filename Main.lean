@@ -1,13 +1,12 @@
 import Http
-import OpenSSL
+-- import OpenSSL
 
-open OpenSSL
+-- open OpenSSL
 open Http
 
 def main (args : List String) : IO UInt32 := do
   try
-    let ctx ← Context.init ()
-    let ssl ← ctx.initSSL
+    -- let ssl ← sslClientInit
     
     match args with
     | [ "--get", surl ] => do
@@ -20,7 +19,7 @@ def main (args : List String) : IO UInt32 := do
       let response ← Client.post url body
       println! "headers : {response.headers}"
       println! "body: {response.body}"
-    | unknown => println! "Unknown arguments {unknown}"
+    | unknown => println! "Invalid arguments {unknown}"
     pure 0
   catch e =>
     IO.eprintln <| "error: " ++ toString e

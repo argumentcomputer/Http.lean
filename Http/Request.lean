@@ -37,7 +37,7 @@ def send (request : Request) : IO ByteArray := do
   let socket ← Socket.mk .inet .stream
   socket.connect remoteAddr
   let strSend := request.toRequestString
-  let bytesSend ← socket.send strSend.toUTF8
+  discard $ socket.send strSend.toUTF8
   let bytesRecv ← socket.recv 5000
   return bytesRecv
 
