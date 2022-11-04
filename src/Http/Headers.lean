@@ -1,5 +1,5 @@
 import Http.Types
-import Http.Parsec
+import Parsec
 import Std
 
 namespace Http.Headers

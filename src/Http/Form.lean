@@ -1,5 +1,5 @@
 import Std
-import Http.Parsec
+import Parsec
 
 open Std
 

@@ -21,13 +21,18 @@
       # Compile dependencies with the same lean version
       inputs.lean.follows = "lean";
     };
+    Parsec-lean = {
+      url = "github:yatima-inc/Parsec.lean";
+      # Compile dependencies with the same lean version
+      inputs.lean.follows = "lean";
+    };
     lake = {
       url = "github:yatima-inc/lake";
       inputs.lean.follows = "lean";
     };
   };
 
-  outputs = { self, lean, utils, nixpkgs, Socket-lean, OpenSSL-lean, lake }:
+  outputs = { self, lean, utils, nixpkgs, Socket-lean, OpenSSL-lean, Parsec-lean, lake }:
     let
       supportedSystems = [
         "aarch64-linux"
@@ -46,7 +51,11 @@
         name = "Http";  # must match the name of the top-level .lean file
         project = leanPkgs.buildLeanPackage {
           inherit name;
-          deps = [ OpenSSL-lean.project.${system} Socket-lean.project.${system} ];
+          deps = [ 
+            OpenSSL-lean.project.${system}
+            Socket-lean.project.${system}
+            Parsec-lean.project.${system}
+          ];
           # Where the lean files are located
           src = ./src;
         };
